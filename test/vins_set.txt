@@ -1,0 +1,102 @@
+[version]
+
+NX xavier eMMC (P3668-0001 module)
+Jetpack 4.6.3 (L4T 32.7.3)
+
+[flash by NV SDK manager]
+
+Target Components
+
+Before attaching ssd
+Jetson OS only
+After attaching ssd
+Jetson SDK components only
+
+
+
+#flash os
+recovery mode connect and manual flash
+
+#usbfs mem set
+vi /boot/extlinux/extlinux.conf
+APPEND usbcore.usbfs_memory_mb=512
+
+cat /sys/module/usbcore/parameters/usbfs_memory_mb
+default 16 to 512
+
+#rootonNVMe
+https://github.com/jetsonhacks/rootOnNVMe
+
+#flash CUDA
+non recovery mode connect and automatic flash
+
+//ros melodic build after cv-bridge
+
+#opencv 4 uninstall
+sudo apt-get purge libopencv* python-opencv
+sudo find /usr/local/ -name "*opencv*" -exec rm {} \;
+sudo apt autoremove -y
+
+#eigen, ceres
+https://github.com/zinuok/VINS-Fusion#-eigen
+
+#30 evaluation_callback_test failed
+https://github.com/ceres-solver/ceres-solver/commit/923fddcd0eabd7902092122b8cdca45800609870
+https://github.com/ceres-solver/ceres-solver/commit/e886d7e65368e73e9d35c2ead895d81ced677977
+
+max_num_iterations = 300 -> 50
+// because Cost function is hard
+
+#opencv3 with 18.04
+sudo apt-get install gcc-6 g++-6
+CUDA_ARCH_BIN=8.6 -> 7.2
+CUDA_ARCH_PTX=8.6 -> 7.2
+https://github.com/engcang/vins-application#-ceres-solver-and-eigen-mandatory-for-vins
+
+Cuda 10.0 gl error
+sudo vi /usr/local/cuda/include/cuda_gl_interop.h
+61~65,67 주석처리
+https://blog.naver.com/PostView.nhn?blogId=yuihorie1004&logNo=221847015861&from=search&redirect=Log&widgetTypeCall=true&directAccess=false
+
+#ros melodic build
+github.com/jetsonhacks/installROSXavier.git
+
+sudo apt-get install python-catkin-tools
+
+#VINS-Fusion-GPU
+git clone https://github.com/pjrambo/VINS-Fusion-gpu
+cd .. && catkin build camera_models
+catkin build
+
+$ cd ~/catkin_ws/src/VINS-Fusion-gpu/loop_fusion && gedit CMakeLists.txt
+$ cd ~/catkin_ws/src/VINS-Fusion-gpu/vins_estimator && gedit CMakeLists.txt
+
+##For loop_fusion : line 19
+        #find_package(OpenCV)
+        include(/usr/local/share/OpenCV/OpenCVConfig.cmake)
+##For vins_estimator : line 20
+        #find_package(OpenCV REQUIRED)
+        include(/usr/local/share/OpenCV/OpenCVConfig.cmake)
+#librealsense
+https://github.com/IntelRealSense/librealsense/blob/master/doc/installation_jetson.md
+
+#realsense-ros
+https://github.com/IntelRealSense/realsense-ros/tree/ros1-legacy
+
+Building from Source using RSUSB Backend
+
+./libuvc_installation.sh -DBUILD_WITH_CUDA=true
+Building from Source using Native Backend
+
+./scripts/patch-realsense-ubuntu-L4T.sh
+        sudo apt-get install git libssl-dev libusb-1.0-0-dev libudev-dev pkg-config libgtk-3-dev -y
+        ./scripts/setup_udev_rules.sh  
+        mkdir build && cd build  
+        cmake .. -DBUILD_EXAMPLES=true -DCMAKE_BUILD_TYPE=release -DFORCE_RSUSB_BACKEND=false -DBUILD_WITH_CUDA=true && make -j$(($(nproc)-1)) && sudo make install
+#auterion VIO
+https://github.com/Auterion/VIO
+
+sudo apt-get install ros-melodic-pcl-ros ros-melodic-mavros ros-melodic-mavros-extra
+
+#PX4 aviodance
+https://github.com/PX4/PX4-Avoidance
